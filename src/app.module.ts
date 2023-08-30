@@ -6,9 +6,17 @@ import { CredentialsModule } from './credentials/credentials.module';
 import { NotesModule } from './notes/notes.module';
 import { CardsModule } from './cards/cards.module';
 import { EraseModule } from './erase/erase.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
-  imports: [UsersModule, CredentialsModule, NotesModule, CardsModule, EraseModule],
+  imports: [
+    UsersModule,
+    CredentialsModule,
+    NotesModule,
+    CardsModule,
+    EraseModule,
+    PrismaModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
