@@ -1,14 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UsersRepository {
+  private SALT: number = 10;
+
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  create(createUser: Omit<User, 'id'>): Promise<Omit<User, 'password'>> {
+    return this.prisma.user.create({
+      data: {
+        ...createUser,
+        password: bcrypt.hashSync(createUser.password, this.SALT),
+      },
+      select: { id: true, email: true },
+    });
   }
 
   findAll() {
@@ -17,10 +25,6 @@ export class UsersRepository {
 
   findOne(id: number) {
     return `This action returns a #${id} user`;
-  }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
   }
 
   remove(id: number) {

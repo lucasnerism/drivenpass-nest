@@ -5,7 +5,7 @@ import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { E2eUtils } from '../e2eUtils';
 
-describe('Users E2E Tests', () => {
+describe('Credentials E2E Tests', () => {
   let app: INestApplication;
   let prisma: PrismaService = new PrismaService();
 
