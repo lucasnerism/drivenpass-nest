@@ -10,6 +10,8 @@ import {
 @ApiTags('health')
 @Controller()
 export class AppController {
+  private port = process.env.PORT || 3000;
+
   constructor(
     private readonly appService: AppService,
     private health: HealthCheckService,
@@ -27,7 +29,8 @@ export class AppController {
   @HealthCheck()
   getHealth() {
     return this.health.check([
-      () => this.http.pingCheck('basic Check', 'http://localhost:3000/'),
+      () =>
+        this.http.pingCheck('basic Check', `http://localhost:${this.port}/`),
     ]);
   }
 }
