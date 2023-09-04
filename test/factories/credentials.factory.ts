@@ -3,6 +3,7 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 export class CredentialsFactory {
   private userId: number;
   private title: string;
+  private url: string;
   private username: string;
   private password: string;
 
@@ -18,7 +19,12 @@ export class CredentialsFactory {
     return this;
   }
 
-  withContent(username: string) {
+  withUrl(url: string) {
+    this.url = url;
+    return this;
+  }
+
+  withUsername(username: string) {
     this.username = username;
     return this;
   }
@@ -32,15 +38,16 @@ export class CredentialsFactory {
     return {
       title: this.title,
       username: this.username,
-      userId: this.userId,
       password: this.password,
+      url: this.url,
     };
   }
 
   async persist() {
-    const note = this.build();
-    return await this.prisma.credential.create({
-      data: note,
+    const credential = this.build();
+    const credentialDb = await this.prisma.credential.create({
+      data: { ...credential, userId: this.userId },
     });
+    return { credential, credentialDb };
   }
 }

@@ -1,14 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { SignInDto } from './dto/signInDto';
 import { SignUpDto } from './dto/signUpDto';
 import { UsersService } from '../users/users.service';
 import { User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
   private EXPIRATION_TIME = '7 days';
-  private ISSUER = 'Driven';
+  private ISSUER = 'lucasnerism';
   private AUDIENCE = 'users';
 
   constructor(
@@ -16,11 +21,21 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async signIn(signInDto: SignInDto) {
-    throw new Error('Method not implemented.');
-  }
   async signUp(signUpDto: SignUpDto) {
-    throw new Error('Method not implemented.');
+    const user = await this.usersService.findOneByEmail(signUpDto.email);
+    if (user) throw new ConflictException();
+
+    return this.usersService.create(signUpDto);
+  }
+
+  async signIn(signInDto: SignInDto) {
+    const user = await this.usersService.findOneByEmail(signInDto.email);
+    if (!user) throw new UnauthorizedException('Email or password invalid');
+
+    const valid = await bcrypt.compare(signInDto.password, user.password);
+    if (!valid) throw new UnauthorizedException('Email or password invalid');
+
+    return this.createToken(user);
   }
 
   createToken(user: User) {
@@ -38,10 +53,7 @@ export class AuthService {
   }
 
   checkToken(token: string) {
-    const data = this.jwtService.verify(token, {
-      audience: this.AUDIENCE,
-      issuer: this.ISSUER,
-    });
+    const data = this.jwtService.verify(token);
 
     return data;
   }

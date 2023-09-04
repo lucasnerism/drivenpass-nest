@@ -7,16 +7,28 @@ import { PrismaService } from '../prisma/prisma.service';
 export class CredentialsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createCredentialDto: CreateCredentialDto) {
-    return 'This action adds a new credential';
+  create(createCredentialDto: CreateCredentialDto, userId: number) {
+    return this.prisma.credential.create({
+      data: { ...createCredentialDto, userId },
+    });
   }
 
-  findAll() {
-    return `This action returns all credentials`;
+  findAll(userId: number) {
+    return this.prisma.credential.findMany({
+      where: { userId },
+    });
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} credential`;
+    return this.prisma.credential.findUnique({
+      where: { id },
+    });
+  }
+
+  findOneByTitle(title: string, userId: number) {
+    return this.prisma.credential.findFirst({
+      where: { title, userId },
+    });
   }
 
   update(id: number, updateCredentialDto: UpdateCredentialDto) {
@@ -24,6 +36,8 @@ export class CredentialsRepository {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} credential`;
+    return this.prisma.credential.delete({
+      where: { id },
+    });
   }
 }

@@ -19,15 +19,16 @@ export class UsersRepository {
     });
   }
 
-  findAll() {
-    return `This action returns all users`;
+  findOne(id: number): Promise<Omit<User, 'password'>> {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: { id: true, email: true },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  findOneByEmail(email: string): Promise<User> {
+    return this.prisma.user.findUnique({
+      where: { email },
+    });
   }
 }

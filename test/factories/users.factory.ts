@@ -25,8 +25,9 @@ export class UsersFactory {
 
   async persist() {
     const user = this.build();
-    return await this.prisma.user.create({
+    const userDb = await this.prisma.user.create({
       data: { ...user, password: bcrypt.hashSync(user.password, 10) },
     });
+    return { user, userDb };
   }
 }
