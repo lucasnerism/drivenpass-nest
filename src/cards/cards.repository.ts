@@ -7,23 +7,37 @@ import { PrismaService } from '../prisma/prisma.service';
 export class CardsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createCardDto: CreateCardDto) {
-    return 'This action adds a new card';
+  create(createCardDto: CreateCardDto, userId: number) {
+    return this.prisma.card.create({
+      data: { ...createCardDto, userId },
+    });
   }
 
-  findAll() {
-    return `This action returns all cards`;
+  findAll(userId: number) {
+    return this.prisma.card.findMany({
+      where: { userId },
+    });
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} card`;
+    return this.prisma.card.findUnique({
+      where: { id },
+    });
+  }
+
+  findOneByTitle(title: string, userId: number) {
+    return this.prisma.card.findFirst({
+      where: { title, userId },
+    });
   }
 
   update(id: number, updateCardDto: UpdateCardDto) {
-    return `This action updates a #${id} card`;
+    return `This action updates a #${id} credential`;
   }
 
   remove(id: number) {
-    return `This action removes a #${id} card`;
+    return this.prisma.card.delete({
+      where: { id },
+    });
   }
 }

@@ -26,14 +26,14 @@ export class NotesFactory {
     return {
       title: this.title,
       content: this.content,
-      userId: this.userId,
     };
   }
 
   async persist() {
     const note = this.build();
-    return await this.prisma.note.create({
-      data: note,
+    const noteDb = await this.prisma.note.create({
+      data: { ...note, userId: this.userId },
     });
+    return { note, noteDb };
   }
 }

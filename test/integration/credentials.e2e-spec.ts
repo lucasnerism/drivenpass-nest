@@ -39,6 +39,20 @@ describe('Credentials E2E Tests', () => {
     await prisma.$disconnect();
   });
 
+  it('POST /credentials => should return status 401 with invalid token', async () => {
+    const credential = new CredentialsFactory(prisma)
+      .withTitle('credential')
+      .withUrl('https://www.test.com')
+      .withUsername('test')
+      .withPassword('test')
+      .build();
+    const { status } = await request(app.getHttpServer())
+      .post('/credentials')
+      .set('Authorization', `Bearer token`)
+      .send(credential);
+    expect(status).toEqual(HttpStatus.UNAUTHORIZED);
+  });
+
   it('POST /credentials => should create a new credential', async () => {
     const { userDb } = await new UsersFactory(prisma)
       .withEmail('test@test.com')
@@ -104,6 +118,13 @@ describe('Credentials E2E Tests', () => {
     expect(status).toEqual(HttpStatus.CONFLICT);
   });
 
+  it('GET /credentials => should return status 401 with invalid token', async () => {
+    const { status } = await request(app.getHttpServer())
+      .get('/credentials')
+      .set('Authorization', `Bearer token`);
+    expect(status).toEqual(HttpStatus.UNAUTHORIZED);
+  });
+
   it("GET /credentials/ => should return user's credentials", async () => {
     const { userDb } = await new UsersFactory(prisma)
       .withEmail('test@test.com')
@@ -123,6 +144,13 @@ describe('Credentials E2E Tests', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(status).toEqual(HttpStatus.OK);
     expect(body).toEqual([credentialDb]);
+  });
+
+  it('GET /credentials/:id => should return status 401 with invalid token', async () => {
+    const { status } = await request(app.getHttpServer())
+      .get('/credentials/1')
+      .set('Authorization', `Bearer token`);
+    expect(status).toEqual(HttpStatus.UNAUTHORIZED);
   });
 
   it('GET /credentials/:id => should return said credential', async () => {
@@ -183,7 +211,14 @@ describe('Credentials E2E Tests', () => {
     expect(status).toEqual(HttpStatus.NOT_FOUND);
   });
 
-  it('DELETE /credentials/:id => should return said credential', async () => {
+  it('DELETE /credentials/:id => should return status 401 with invalid token', async () => {
+    const { status } = await request(app.getHttpServer())
+      .delete('/credentials/1')
+      .set('Authorization', `Bearer token`);
+    expect(status).toEqual(HttpStatus.UNAUTHORIZED);
+  });
+
+  it('DELETE /credentials/:id => should delete said credential', async () => {
     const { userDb } = await new UsersFactory(prisma)
       .withEmail('test@test.com')
       .withPassword('1234567aB!')
@@ -201,6 +236,9 @@ describe('Credentials E2E Tests', () => {
       .delete(`/credentials/${credentialDb.id}`)
       .set('Authorization', `Bearer ${token}`);
     expect(status).toEqual(HttpStatus.OK);
+
+    const credentials = await prisma.credential.findMany({});
+    expect(credentials).toHaveLength(0);
   });
 
   it('DELETE /credentials/:id => should return status 403 if credential is not from user', async () => {

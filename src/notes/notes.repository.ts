@@ -7,16 +7,28 @@ import { PrismaService } from '../prisma/prisma.service';
 export class NotesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(createNoteDto: CreateNoteDto) {
-    return 'This action adds a new note';
+  create(createNoteDto: CreateNoteDto, userId: number) {
+    return this.prisma.note.create({
+      data: { ...createNoteDto, userId },
+    });
   }
 
-  findAll() {
-    return `This action returns all notes`;
+  findAll(userId: number) {
+    return this.prisma.note.findMany({
+      where: { userId },
+    });
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} note`;
+    return this.prisma.note.findUnique({
+      where: { id },
+    });
+  }
+
+  findOneByTitle(title: string, userId: number) {
+    return this.prisma.note.findFirst({
+      where: { title, userId },
+    });
   }
 
   update(id: number, updateNoteDto: UpdateNoteDto) {
@@ -24,6 +36,8 @@ export class NotesRepository {
   }
 
   remove(id: number) {
-    return `This action removes a #${id} note`;
+    return this.prisma.note.delete({
+      where: { id },
+    });
   }
 }

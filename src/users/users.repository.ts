@@ -19,10 +19,9 @@ export class UsersRepository {
     });
   }
 
-  findOne(id: number): Promise<Omit<User, 'password'>> {
+  findOne(id: number): Promise<User> {
     return this.prisma.user.findUnique({
       where: { id },
-      select: { id: true, email: true },
     });
   }
 
@@ -30,5 +29,14 @@ export class UsersRepository {
     return this.prisma.user.findUnique({
       where: { email },
     });
+  }
+
+  async deleteUserData(userId: number) {
+    this.prisma.$transaction([
+      this.prisma.note.deleteMany({ where: { userId } }),
+      this.prisma.card.deleteMany({ where: { userId } }),
+      this.prisma.credential.deleteMany({ where: { userId } }),
+      this.prisma.user.deleteMany({ where: { id: userId } }),
+    ]);
   }
 }

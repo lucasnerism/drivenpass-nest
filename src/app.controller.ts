@@ -1,12 +1,33 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, HttpStatus } from '@nestjs/common';
 import { AppService } from './app.service';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  HealthCheck,
+  HealthCheckService,
+  HttpHealthIndicator,
+} from '@nestjs/terminus';
 
+@ApiTags('health')
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private health: HealthCheckService,
+    private http: HttpHealthIndicator,
+  ) {}
 
+  @Get()
+  getStatus() {
+    return this.appService.getStatus();
+  }
+
+  @ApiOperation({ summary: 'Get API status' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Everything is okay!' })
   @Get('health')
-  getHealth(): string {
-    return this.appService.getHealth();
+  @HealthCheck()
+  getHealth() {
+    return this.health.check([
+      () => this.http.pingCheck('basic Check', 'http://localhost:3000/'),
+    ]);
   }
 }

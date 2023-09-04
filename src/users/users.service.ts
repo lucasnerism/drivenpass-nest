@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersRepository } from './users.repository';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +26,10 @@ export class UsersService {
     return user;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async eraseUserData(userId: number, password: string) {
+    const user = await this.findOne(userId);
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) throw new UnauthorizedException();
+    return this.usersRepository.deleteUserData(userId);
   }
 }

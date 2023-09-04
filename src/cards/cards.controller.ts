@@ -1,34 +1,99 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  HttpStatus,
+  ParseIntPipe,
+  UseGuards,
+  Put,
+} from '@nestjs/common';
 import { CardsService } from './cards.service';
 import { CreateCardDto } from './dto/create-card.dto';
 import { UpdateCardDto } from './dto/update-card.dto';
+import {
+  ApiBearerAuth,
+  ApiResponse,
+  ApiTags,
+  ApiOperation,
+  ApiParam,
+} from '@nestjs/swagger';
+import { User } from '../decorators/user.decorator';
+import { AuthGuard } from '../guards/auth.guard';
+import { User as UserPrisma } from '@prisma/client';
 
+@ApiTags('cards')
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 @Controller('cards')
 export class CardsController {
   constructor(private readonly cardsService: CardsService) {}
 
   @Post()
-  create(@Body() createCardDto: CreateCardDto) {
-    return this.cardsService.create(createCardDto);
+  @ApiOperation({ summary: 'Create a new card' })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Card was created',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Body was invalid',
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'Duplicate card title',
+  })
+  create(@Body() createCardDto: CreateCardDto, @User() user: UserPrisma) {
+    return this.cardsService.create(createCardDto, user.id);
   }
 
   @Get()
-  findAll() {
-    return this.cardsService.findAll();
+  @ApiOperation({ summary: 'Get all cards that belongs to user' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Got the cards' })
+  findAll(@User() user: UserPrisma) {
+    return this.cardsService.findAll(user.id);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.cardsService.findOne(+id);
+  @ApiOperation({ summary: 'Get said card if belongs to user' })
+  @ApiParam({ name: 'id', description: "card's id", example: 1 })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Got the card' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Card didnt belong to user',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Card didnt exist',
+  })
+  findOne(@Param('id', ParseIntPipe) id: string, @User() user: UserPrisma) {
+    return this.cardsService.findOne(+id, user.id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCardDto: UpdateCardDto) {
+  @Put(':id')
+  update(
+    @Param('id', ParseIntPipe) id: string,
+    @Body() updateCardDto: UpdateCardDto,
+    @User() user: UserPrisma,
+  ) {
     return this.cardsService.update(+id, updateCardDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.cardsService.remove(+id);
+  @ApiOperation({ summary: 'Delete said card if belongs to user' })
+  @ApiParam({ name: 'id', description: "card's id", example: 1 })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Deleted the card' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Card didnt belong to user',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Card didnt exist',
+  })
+  remove(@Param('id', ParseIntPipe) id: string, @User() user: UserPrisma) {
+    return this.cardsService.remove(+id, user.id);
   }
 }

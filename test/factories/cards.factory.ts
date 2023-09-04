@@ -12,8 +12,12 @@ export class CardsFactory {
   private password: string = faker.finance.pin();
   private isVirtual: boolean;
   private type: CardTypes;
+  private Cryptr = require('cryptr');
+  private cryptr: any;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {
+    this.cryptr = new this.Cryptr(process.env.CRYPTR_SECRET);
+  }
 
   withUserId(userId: number) {
     this.userId = userId;
@@ -39,7 +43,6 @@ export class CardsFactory {
     return {
       title: this.title,
       name: this.name,
-      userId: this.userId,
       number: this.number,
       expirationDate: this.expirationDate,
       cvv: this.cvv,
@@ -51,8 +54,14 @@ export class CardsFactory {
 
   async persist() {
     const card = this.build();
-    return await this.prisma.card.create({
-      data: card,
+    const cardDb = await this.prisma.card.create({
+      data: {
+        ...card,
+        userId: this.userId,
+        cvv: this.cryptr.encrypt(this.cvv),
+        password: this.cryptr.encrypt(this.password),
+      },
     });
+    return { card, cardDb };
   }
 }

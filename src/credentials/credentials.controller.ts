@@ -8,6 +8,7 @@ import {
   Put,
   UseGuards,
   ParseIntPipe,
+  HttpStatus,
 } from '@nestjs/common';
 import { CredentialsService } from './credentials.service';
 import { CreateCredentialDto } from './dto/create-credential.dto';
@@ -16,6 +17,7 @@ import {
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
+  ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from '../guards/auth.guard';
@@ -31,6 +33,18 @@ export class CredentialsController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new credential' })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Credential was created',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Body was invalid',
+  })
+  @ApiResponse({
+    status: HttpStatus.CONFLICT,
+    description: 'Duplicate credential title',
+  })
   create(
     @Body() createCredentialDto: CreateCredentialDto,
     @User() user: UserPrisma,
@@ -39,7 +53,8 @@ export class CredentialsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all users credentials' })
+  @ApiOperation({ summary: 'Get all credentials that belongs to user' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Got the credentials' })
   findAll(@User() user: UserPrisma) {
     return this.credentialsService.findAll(user.id);
   }
@@ -47,6 +62,15 @@ export class CredentialsController {
   @Get(':id')
   @ApiOperation({ summary: 'Get said credential if belongs to user' })
   @ApiParam({ name: 'id', description: "credential's id", example: 1 })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Got the credential' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Credential didnt belong to user',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Credential didnt exist',
+  })
   findOne(@Param('id', ParseIntPipe) id: string, @User() user: UserPrisma) {
     return this.credentialsService.findOne(+id, user.id);
   }
@@ -63,6 +87,15 @@ export class CredentialsController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete said credential if belongs to user' })
   @ApiParam({ name: 'id', description: "credential's id", example: 1 })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Deleted the credential' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Credential didnt belong to user',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Credential didnt exist',
+  })
   remove(@Param('id', ParseIntPipe) id: string, @User() user: UserPrisma) {
     return this.credentialsService.remove(+id, user.id);
   }

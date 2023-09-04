@@ -43,6 +43,6 @@ export class CredentialsService {
 
   async remove(id: number, userId: number) {
     await this.findOne(id, userId);
-    this.credentialsRepository.remove(id);
+    await this.credentialsRepository.remove(id);
   }
 }
