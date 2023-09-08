@@ -15,6 +15,8 @@ $ cd drivenpass-nest
 $ npm install
 ```
 
+## Setup the ENVs
+Configure a `.env.development` and a `.env.test` in the root of your application using the `.env.example` as a basis.
 
 
 ## Running the app
