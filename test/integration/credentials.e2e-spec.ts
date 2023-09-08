@@ -7,11 +7,13 @@ import { E2eUtils } from '../e2eUtils';
 import { CredentialsFactory } from '../factories/credentials.factory';
 import { UsersFactory } from '../factories/users.factory';
 import { JwtModule, JwtService } from '@nestjs/jwt';
+import { CryptrService } from '../../src/crypto/cryptr.service';
 
 describe('Credentials E2E Tests', () => {
   let app: INestApplication;
   let prisma: PrismaService = new PrismaService();
   let jwtService: JwtService;
+  let cryptrService: CryptrService;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -28,6 +30,7 @@ describe('Credentials E2E Tests', () => {
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
+    cryptrService = app.get(CryptrService);
     jwtService = app.get(JwtService);
     await app.init();
 
@@ -40,7 +43,7 @@ describe('Credentials E2E Tests', () => {
   });
 
   it('POST /credentials => should return status 401 with invalid token', async () => {
-    const credential = new CredentialsFactory(prisma)
+    const credential = new CredentialsFactory(prisma, cryptrService)
       .withTitle('credential')
       .withUrl('https://www.test.com')
       .withUsername('test')
@@ -60,7 +63,7 @@ describe('Credentials E2E Tests', () => {
       .persist();
     const token = jwtService.sign({ id: userDb.id });
 
-    const credential = new CredentialsFactory(prisma)
+    const credential = new CredentialsFactory(prisma, cryptrService)
       .withTitle('credential')
       .withUrl('https://www.test.com')
       .withUsername('test')
@@ -75,6 +78,7 @@ describe('Credentials E2E Tests', () => {
       ...credential,
       id: expect.any(Number),
       userId: userDb.id,
+      password: expect.any(String),
     });
   });
 
@@ -85,7 +89,7 @@ describe('Credentials E2E Tests', () => {
       .persist();
     const token = jwtService.sign({ id: userDb.id });
 
-    const credential = new CredentialsFactory(prisma)
+    const credential = new CredentialsFactory(prisma, cryptrService)
       .withTitle('credential')
       .withUrl('https://www.test.com')
       .withUsername('test')
@@ -104,7 +108,7 @@ describe('Credentials E2E Tests', () => {
       .persist();
     const token = jwtService.sign({ id: userDb.id });
 
-    const { credential } = await new CredentialsFactory(prisma)
+    const { credential } = await new CredentialsFactory(prisma, cryptrService)
       .withTitle('credential')
       .withUrl('https://www.test.com')
       .withUsername('test')
@@ -132,7 +136,7 @@ describe('Credentials E2E Tests', () => {
       .persist();
     const token = jwtService.sign({ id: userDb.id });
 
-    const { credentialDb } = await new CredentialsFactory(prisma)
+    const { credentialDb } = await new CredentialsFactory(prisma, cryptrService)
       .withTitle('credential')
       .withUrl('https://www.test.com')
       .withUsername('test')
@@ -143,7 +147,7 @@ describe('Credentials E2E Tests', () => {
       .get('/credentials')
       .set('Authorization', `Bearer ${token}`);
     expect(status).toEqual(HttpStatus.OK);
-    expect(body).toEqual([credentialDb]);
+    expect(body).toEqual([{ ...credentialDb, password: 'test' }]);
   });
 
   it('GET /credentials/:id => should return status 401 with invalid token', async () => {
@@ -160,7 +164,7 @@ describe('Credentials E2E Tests', () => {
       .persist();
     const token = jwtService.sign({ id: userDb.id });
 
-    const { credentialDb } = await new CredentialsFactory(prisma)
+    const { credentialDb } = await new CredentialsFactory(prisma, cryptrService)
       .withTitle('credential')
       .withUrl('https://www.test.com')
       .withUsername('test')
@@ -171,7 +175,7 @@ describe('Credentials E2E Tests', () => {
       .get(`/credentials/${credentialDb.id}`)
       .set('Authorization', `Bearer ${token}`);
     expect(status).toEqual(HttpStatus.OK);
-    expect(body).toEqual(credentialDb);
+    expect(body).toEqual({ ...credentialDb, password: 'test' });
   });
 
   it('GET /credentials/:id => should return status 403 if credential is not from user', async () => {
@@ -185,7 +189,7 @@ describe('Credentials E2E Tests', () => {
       .persist();
     const token = jwtService.sign({ id: secondUser.id });
 
-    const { credentialDb } = await new CredentialsFactory(prisma)
+    const { credentialDb } = await new CredentialsFactory(prisma, cryptrService)
       .withTitle('credential')
       .withUrl('https://www.test.com')
       .withUsername('test')
@@ -225,7 +229,7 @@ describe('Credentials E2E Tests', () => {
       .persist();
     const token = jwtService.sign({ id: userDb.id });
 
-    const { credentialDb } = await new CredentialsFactory(prisma)
+    const { credentialDb } = await new CredentialsFactory(prisma, cryptrService)
       .withTitle('credential')
       .withUrl('https://www.test.com')
       .withUsername('test')
@@ -252,7 +256,7 @@ describe('Credentials E2E Tests', () => {
       .persist();
     const token = jwtService.sign({ id: secondUser.id });
 
-    const { credentialDb } = await new CredentialsFactory(prisma)
+    const { credentialDb } = await new CredentialsFactory(prisma, cryptrService)
       .withTitle('credential')
       .withUrl('https://www.test.com')
       .withUsername('test')

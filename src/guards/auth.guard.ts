@@ -26,9 +26,7 @@ export class AuthGuard implements CanActivate {
       const user = await this.usersService.findOne(parseInt(data.id));
       response.locals.user = user;
     } catch (error) {
-      console.log(error);
-      throw new UnauthorizedException();
-      return false;
+      throw new UnauthorizedException('Token invalid');
     }
 
     return true;

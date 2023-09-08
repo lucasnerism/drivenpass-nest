@@ -9,11 +9,13 @@ import { NotesFactory } from '../factories/notes.factory';
 import { CardsFactory } from '../factories/cards.factory';
 import { CredentialsFactory } from '../factories/credentials.factory';
 import { JwtModule, JwtService } from '@nestjs/jwt';
+import { CryptrService } from '../../src/crypto/cryptr.service';
 
 describe('Users E2E Tests', () => {
   let app: INestApplication;
   let prisma: PrismaService = new PrismaService();
   let jwtService: JwtService;
+  let cryptrService: CryptrService;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -30,6 +32,7 @@ describe('Users E2E Tests', () => {
 
     app = moduleFixture.createNestApplication();
     app.useGlobalPipes(new ValidationPipe());
+    cryptrService = app.get(CryptrService);
     jwtService = app.get(JwtService);
     await app.init();
 
@@ -139,7 +142,7 @@ describe('Users E2E Tests', () => {
       .withUserId(userDb.id)
       .persist();
 
-    await new CredentialsFactory(prisma)
+    await new CredentialsFactory(prisma, cryptrService)
       .withTitle('credential')
       .withUrl('https://www.test.com')
       .withUsername('test')
@@ -183,7 +186,7 @@ describe('Users E2E Tests', () => {
       .withUserId(userDb.id)
       .persist();
 
-    await new CredentialsFactory(prisma)
+    await new CredentialsFactory(prisma, cryptrService)
       .withTitle('credential')
       .withUrl('https://www.test.com')
       .withUsername('test')

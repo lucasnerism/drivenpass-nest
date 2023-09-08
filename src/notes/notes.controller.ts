@@ -3,18 +3,18 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   UseGuards,
   HttpStatus,
+  Put,
 } from '@nestjs/common';
 import { NotesService } from './notes.service';
 import { CreateNoteDto } from './dto/create-note.dto';
-import { UpdateNoteDto } from './dto/update-note.dto';
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -56,6 +56,7 @@ export class NotesController {
   }
 
   @Get(':id')
+  @ApiParam({ name: 'id', description: "note's id", example: 1 })
   @ApiOperation({ summary: 'Get said note that belongs to user' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Got the note' })
   @ApiResponse({
@@ -70,16 +71,28 @@ export class NotesController {
     return this.notesService.findOne(+id, user.id);
   }
 
-  @Patch(':id')
+  @Put(':id')
+  @ApiParam({ name: 'id', description: "note's id", example: 1 })
+  @ApiOperation({ summary: 'Update said notes that belongs to user' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Updated the note' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Note didnt belong to user',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Note didnt exist',
+  })
   update(
     @Param('id') id: string,
-    @Body() updateNoteDto: UpdateNoteDto,
+    @Body() updateNoteDto: CreateNoteDto,
     @User() user: UserPrisma,
   ) {
-    return this.notesService.update(+id, updateNoteDto);
+    return this.notesService.update(+id, updateNoteDto, user.id);
   }
 
   @Delete(':id')
+  @ApiParam({ name: 'id', description: "note's id", example: 1 })
   @ApiOperation({ summary: 'Delete said notes that belongs to user' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Deleted the note' })
   @ApiResponse({

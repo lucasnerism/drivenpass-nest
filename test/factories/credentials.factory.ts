@@ -1,3 +1,4 @@
+import { CryptrService } from '../../src/crypto/cryptr.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
 
 export class CredentialsFactory {
@@ -7,7 +8,10 @@ export class CredentialsFactory {
   private username: string;
   private password: string;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly CryptrService: CryptrService,
+  ) {}
 
   withUserId(userId: number) {
     this.userId = userId;
@@ -46,7 +50,11 @@ export class CredentialsFactory {
   async persist() {
     const credential = this.build();
     const credentialDb = await this.prisma.credential.create({
-      data: { ...credential, userId: this.userId },
+      data: {
+        ...credential,
+        userId: this.userId,
+        password: this.CryptrService.encrypt(credential.password),
+      },
     });
     return { credential, credentialDb };
   }

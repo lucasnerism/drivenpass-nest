@@ -12,7 +12,6 @@ import {
 } from '@nestjs/common';
 import { CardsService } from './cards.service';
 import { CreateCardDto } from './dto/create-card.dto';
-import { UpdateCardDto } from './dto/update-card.dto';
 import {
   ApiBearerAuth,
   ApiResponse,
@@ -73,12 +72,23 @@ export class CardsController {
   }
 
   @Put(':id')
+  @ApiOperation({ summary: 'Update said card if belongs to user' })
+  @ApiParam({ name: 'id', description: "card's id", example: 1 })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Updated the card' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Card didnt belong to user',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Card didnt exist',
+  })
   update(
     @Param('id', ParseIntPipe) id: string,
-    @Body() updateCardDto: UpdateCardDto,
+    @Body() updateCardDto: CreateCardDto,
     @User() user: UserPrisma,
   ) {
-    return this.cardsService.update(+id, updateCardDto);
+    return this.cardsService.update(+id, updateCardDto, user.id);
   }
 
   @Delete(':id')

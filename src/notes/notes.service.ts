@@ -5,7 +5,6 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateNoteDto } from './dto/create-note.dto';
-import { UpdateNoteDto } from './dto/update-note.dto';
 import { NotesRepository } from './notes.repository';
 
 @Injectable()
@@ -34,8 +33,9 @@ export class NotesService {
     return this.notesRepository.findOneByTitle(title, userId);
   }
 
-  update(id: number, updateNoteDto: UpdateNoteDto) {
-    return `This action updates a #${id} note`;
+  async update(id: number, updateNoteDto: CreateNoteDto, userId: number) {
+    await this.findOne(id, userId);
+    return this.notesRepository.update(id, updateNoteDto);
   }
 
   async remove(id: number, userId: number) {

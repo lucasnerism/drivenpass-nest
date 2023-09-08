@@ -9,6 +9,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { TerminusModule } from '@nestjs/terminus';
 import { HttpModule } from '@nestjs/axios';
+import { CryptoModule } from './crypto/crypto.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { HttpModule } from '@nestjs/axios';
     AuthModule,
     TerminusModule,
     HttpModule,
+    CryptoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

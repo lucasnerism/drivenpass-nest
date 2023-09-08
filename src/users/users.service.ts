@@ -5,14 +5,18 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UsersRepository } from './users.repository';
-import * as bcrypt from 'bcrypt';
+import { BcryptService } from '../crypto/bcrypt.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly usersRepository: UsersRepository) {}
+  constructor(
+    private readonly usersRepository: UsersRepository,
+    private readonly BcryptService: BcryptService,
+  ) {}
 
   async create(createUserDto: CreateUserDto) {
-    return this.usersRepository.create(createUserDto);
+    const hash = this.BcryptService.hash(createUserDto.password);
+    return this.usersRepository.create({ ...createUserDto, password: hash });
   }
 
   async findOne(id: number) {
@@ -28,7 +32,7 @@ export class UsersService {
 
   async eraseUserData(userId: number, password: string) {
     const user = await this.findOne(userId);
-    const valid = await bcrypt.compare(password, user.password);
+    const valid = await this.BcryptService.compare(password, user.password);
     if (!valid) throw new UnauthorizedException();
     return this.usersRepository.deleteUserData(userId);
   }

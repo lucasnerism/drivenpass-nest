@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCredentialDto } from './dto/create-credential.dto';
-import { UpdateCredentialDto } from './dto/update-credential.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -31,8 +30,11 @@ export class CredentialsRepository {
     });
   }
 
-  update(id: number, updateCredentialDto: UpdateCredentialDto) {
-    return `This action updates a #${id} credential`;
+  update(id: number, updateCredentialDto: CreateCredentialDto) {
+    return this.prisma.credential.update({
+      data: updateCredentialDto,
+      where: { id },
+    });
   }
 
   remove(id: number) {

@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCardDto } from './dto/create-card.dto';
-import { UpdateCardDto } from './dto/update-card.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -31,8 +30,11 @@ export class CardsRepository {
     });
   }
 
-  update(id: number, updateCardDto: UpdateCardDto) {
-    return `This action updates a #${id} credential`;
+  update(id: number, updateCardDto: CreateCardDto) {
+    return this.prisma.card.update({
+      data: updateCardDto,
+      where: { id },
+    });
   }
 
   remove(id: number) {

@@ -1,20 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
 import { User } from '@prisma/client';
 
 @Injectable()
 export class UsersRepository {
-  private SALT: number = 10;
-
   constructor(private readonly prisma: PrismaService) {}
 
   create(createUser: Omit<User, 'id'>): Promise<Omit<User, 'password'>> {
     return this.prisma.user.create({
-      data: {
-        ...createUser,
-        password: bcrypt.hashSync(createUser.password, this.SALT),
-      },
+      data: createUser,
       select: { id: true, email: true },
     });
   }

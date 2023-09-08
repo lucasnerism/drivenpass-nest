@@ -12,7 +12,6 @@ import {
 } from '@nestjs/common';
 import { CredentialsService } from './credentials.service';
 import { CreateCredentialDto } from './dto/create-credential.dto';
-import { UpdateCredentialDto } from './dto/update-credential.dto';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -76,12 +75,23 @@ export class CredentialsController {
   }
 
   @Put(':id')
+  @ApiOperation({ summary: 'Update said credential if belongs to user' })
+  @ApiParam({ name: 'id', description: "credential's id", example: 1 })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Updated the credential' })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'Credential didnt belong to user',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Credential didnt exist',
+  })
   update(
     @Param('id', ParseIntPipe) id: string,
-    @Body() updateCredentialDto: UpdateCredentialDto,
+    @Body() updateCredentialDto: CreateCredentialDto,
     @User() user: UserPrisma,
   ) {
-    return this.credentialsService.update(+id, updateCredentialDto);
+    return this.credentialsService.update(+id, updateCredentialDto, user.id);
   }
 
   @Delete(':id')

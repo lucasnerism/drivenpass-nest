@@ -5,12 +5,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CreateCredentialDto } from './dto/create-credential.dto';
-import { UpdateCredentialDto } from './dto/update-credential.dto';
 import { CredentialsRepository } from './credentials.repository';
+import { CryptrService } from '../crypto/cryptr.service';
+import { Credential } from '@prisma/client';
 
 @Injectable()
 export class CredentialsService {
-  constructor(private readonly credentialsRepository: CredentialsRepository) {}
+  constructor(
+    private readonly credentialsRepository: CredentialsRepository,
+    private readonly CryptrService: CryptrService,
+  ) {}
 
   async create(createCredentialDto: CreateCredentialDto, userId: number) {
     const credential = await this.findOneByTitle(
@@ -19,30 +23,53 @@ export class CredentialsService {
     );
     if (credential)
       throw new ConflictException('Credential with this title already exists!');
-    return this.credentialsRepository.create(createCredentialDto, userId);
+    const hash = this.CryptrService.encrypt(createCredentialDto.password);
+    return this.credentialsRepository.create(
+      { ...createCredentialDto, password: hash },
+      userId,
+    );
   }
 
-  findAll(userId: number) {
-    return this.credentialsRepository.findAll(userId);
+  async findAll(userId: number) {
+    const credentials = await this.credentialsRepository.findAll(userId);
+    return this.decryptCredentials(credentials);
   }
 
   async findOne(id: number, userId: number) {
     const credential = await this.credentialsRepository.findOne(id);
     if (!credential) throw new NotFoundException();
     if (credential.userId !== userId) throw new ForbiddenException();
-    return credential;
+    return this.decryptCredentials([credential])[0];
   }
 
   findOneByTitle(title: string, userId: number) {
     return this.credentialsRepository.findOneByTitle(title, userId);
   }
 
-  update(id: number, updateCredentialDto: UpdateCredentialDto) {
-    return `This action updates a #${id} credential`;
+  async update(
+    id: number,
+    updateCredentialDto: CreateCredentialDto,
+    userId: number,
+  ) {
+    const hash = this.CryptrService.encrypt(updateCredentialDto.password);
+    await this.findOne(id, userId);
+    await this.credentialsRepository.update(id, {
+      ...updateCredentialDto,
+      password: hash,
+    });
   }
 
   async remove(id: number, userId: number) {
     await this.findOne(id, userId);
     await this.credentialsRepository.remove(id);
+  }
+
+  private decryptCredentials(credentials: Credential[]) {
+    return credentials.map((credential) => {
+      return {
+        ...credential,
+        password: this.CryptrService.decrypt(credential.password),
+      };
+    });
   }
 }

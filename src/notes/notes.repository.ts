@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { CreateNoteDto } from './dto/create-note.dto';
-import { UpdateNoteDto } from './dto/update-note.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -31,8 +30,11 @@ export class NotesRepository {
     });
   }
 
-  update(id: number, updateNoteDto: UpdateNoteDto) {
-    return `This action updates a #${id} note`;
+  update(id: number, updateNoteDto: CreateNoteDto) {
+    return this.prisma.note.update({
+      data: updateNoteDto,
+      where: { id },
+    });
   }
 
   remove(id: number) {
