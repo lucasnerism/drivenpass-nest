@@ -10,8 +10,8 @@ You can see all the endpoints and infos related to them on the Documentation pow
 ## Installation
 
 ```bash
-$ git clone https://github.com/lucasnerism/drivenpass-nest
-$ cd drivenpass-nest
+$ git clone https://github.com/lucasnerism/securepass-nest
+$ cd securepass-nest
 $ npm install
 ```
 
