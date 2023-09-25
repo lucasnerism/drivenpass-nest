@@ -16,6 +16,10 @@ $ cd securepass-nest
 $ npm install
 ```
 
+## Create a Database
+Create a PostgreSQL database with whatever name you want
+
+
 ## Setup the ENVs
 Configure a `.env.development` and a `.env.test` in the root of your application using the `.env.example` as a basis.
 
